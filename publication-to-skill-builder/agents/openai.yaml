@@ -1,0 +1,3 @@
+display_name: Publication-to-Skill Builder
+short_description: Propose and scaffold Codex skills from scientific papers.
+default_prompt: Analyze the provided publication identifiers or PDFs, propose reusable computational biology skills, check for existing skills, and wait for my approval before scaffolding anything.
