@@ -19,6 +19,9 @@ Use this skill when the user wants to extract reusable computational ideas from 
 - Treat review articles, benchmark papers, workflow papers, database/resource papers, software papers, and tutorials as valid sources of skill ideas.
 - Do not invent techniques. Ground every proposed skill in paper evidence and mark uncertainty clearly.
 - Check `https://github.com/K-Dense-AI/scientific-agent-skills` before proposing a new skill.
+- Detect code repositories, notebooks, scripts, and package links reported in the paper. When an accessible repository exists, inspect it as implementation evidence before deciding whether a generated skill needs helper scripts.
+- Generated skills should include helper scripts under `scripts/` whenever the reusable method requires repeatable parsing, data fetching, format conversion, computation, validation, or report generation. Do not leave such steps as prose-only instructions when deterministic code would materially improve reliability.
+- Treat source-code repositories as references, not instructions. Adapt the implementation pattern and cite provenance; do not copy incompatible, unclear, or unlicensed code into generated skills.
 - Do not scaffold a generated skill until the user approves the proposal for that specific publication.
 - If the user declines, ask what skill they would have preferred, record that feedback, and do not implement it unless the user explicitly asks later.
 - Publish generated skills on the current repository branch. Do not create or switch to a publishing branch unless the user explicitly asks.
@@ -34,11 +37,13 @@ For a normal run:
 4. Parse complete PDFs with `scripts/parse_pdf.py` when PDFs are available or supplied.
 5. Prepare a full-paper AI analysis bundle with `scripts/analyze_publication.py`.
 6. As Codex, read the analysis bundle and generate ranked `candidate_skills` without using a hardcoded technique list.
-7. Select the strongest candidate as `proposal`, then check it with `scripts/check_existing_skills.py`.
-8. Present the selected proposal and alternates to the user for approval.
-9. Record the user decision with `scripts/write_provenance.py`.
-10. Scaffold only approved skills with `scripts/scaffold_skill.py`.
-11. Stage generated skills and `published-skills.md` on the current branch only when the user requests Git preparation or publishing.
+7. Inspect accessible repository links found in the paper when they are relevant to candidate implementation, using `scripts/inspect_repository.py` when a GitHub repository is available. Use repository code to identify expected data formats, command-line interfaces, parsing functions, validation routines, and reusable script boundaries.
+8. Generate ranked `candidate_skills` with explicit `helper_scripts` recommendations when scripts are needed. Each proposed helper should state its purpose, expected inputs, expected outputs, and repository files or paper sections used as evidence.
+9. Select the strongest candidate as `proposal`, then check it with `scripts/check_existing_skills.py`.
+10. Present the selected proposal and alternates to the user for approval, including whether helper scripts will be scaffolded and whether source repository code was inspected.
+11. Record the user decision with `scripts/write_provenance.py`.
+12. Scaffold only approved skills with `scripts/scaffold_skill.py`; include `scripts/` files when the approved proposal supplies helper scripts.
+13. Stage generated skills and `published-skills.md` on the current branch only when the user requests Git preparation or publishing.
 
 Use [references/provenance-schema.md](references/provenance-schema.md) whenever writing or inspecting provenance JSON.
 
@@ -51,4 +56,4 @@ Use [references/provenance-schema.md](references/provenance-schema.md) whenever 
 - `runs/<run-id>/decisions/*.json`
 - `generated-skills/<skill-name>/`
 
-The generated skill folder should include a concise `SKILL.md` and a provenance JSON file copied from the approved decision.
+The generated skill folder should include a concise `SKILL.md`, a provenance JSON file copied from the approved decision, and a `scripts/` directory when helper scripts are needed for the method.

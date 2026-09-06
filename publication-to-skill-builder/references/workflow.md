@@ -41,6 +41,7 @@ Extract and summarize:
 - Data availability.
 - Code availability.
 - Repository links.
+- Repository implementation files when accessible and relevant, such as scripts, notebooks, package modules, schemas, tests, and command examples.
 - Inputs, outputs, and reusable steps.
 
 If extraction is partial, mark `content.extraction_status` as `partial` and explain the limitation.
@@ -58,6 +59,39 @@ When reviewing the AI bundle, consider:
 
 Generate ranked candidate skills from the whole publication. Each candidate should be grounded in paper evidence and explain why it is reusable beyond the specific biological question.
 
+## Source Repository Review
+
+When the paper reports GitHub, GitLab, Bitbucket, Zenodo source archives, package repositories, notebooks, or other code repositories:
+
+- For GitHub repositories, run `scripts/inspect_repository.py` on the publication, analysis, proposal, or decision JSON before final candidate selection when network access is available.
+- Inspect accessible repository metadata and file trees before finalizing candidates when the repository is relevant to implementation.
+- Prefer repository files that clarify data formats, parsing rules, algorithm steps, command-line interfaces, tests, schemas, notebooks, or validation routines.
+- Record repository URLs, inspected files, and any access limitations in provenance.
+- Treat repository code as reference material. Follow its method and cite provenance, but do not copy code unless the license is compatible and copying is necessary.
+- If the repository cannot be accessed, record the failure and continue from paper evidence; do not infer missing implementation details.
+- If repository code contradicts the paper, mark the discrepancy and prefer the paper unless the user explicitly asks to reproduce the repository behavior.
+
+## Helper Script Planning
+
+Generated skills should include helper scripts when deterministic code would make the method safer or more reusable. Recommend scripts for tasks such as:
+
+- Fetching data from public APIs, repositories, or source databases named by the paper.
+- Parsing raw XML, JSON, CSV, TSV, HDF5, FASTQ/BAM/VCF, images, or other domain data.
+- Normalizing source-specific schemas into canonical analysis tables.
+- Running statistical tests, model scoring, graph construction, validation checks, or figure generation.
+- Writing reproducible outputs, summaries, provenance, or audit reports.
+
+For each candidate, include a `helper_scripts` list when scripts are needed. Each script entry should include:
+
+- `path`: relative path under the generated skill, usually `scripts/<name>.py`.
+- `purpose`: what the script automates.
+- `expected_inputs`.
+- `expected_outputs`.
+- `implementation_notes`: paper-grounded and repository-grounded behavior to implement.
+- `source_references`: paper sections and repository files used as evidence.
+
+Do not propose helper scripts merely to make a skill look substantial. Short procedural skills can remain prose-only when there is no recurring computation or data transformation.
+
 ## Proposal Review
 
 For each publication, present:
@@ -69,7 +103,9 @@ For each publication, present:
 - Why it is reusable.
 - Evidence from the paper.
 - Expected inputs and outputs.
+- Proposed helper scripts, when any, including what raw data they parse or fetch.
 - Data/code availability.
+- Repository files inspected or repository access limitations.
 - Existing-skill search result.
 - Limitations.
 

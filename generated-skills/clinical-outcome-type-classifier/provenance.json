@@ -611,6 +611,26 @@
     "searched_at": "2026-09-03T06:14:23.969171+00:00",
     "status": "searched"
   },
+  "helper_scripts": [
+    {
+      "expected_inputs": [
+        "ClinicalTrials.gov NCT IDs",
+        "ClinicalTrials.gov trial URLs",
+        "Optional text file with one trial ID or URL per line"
+      ],
+      "expected_outputs": [
+        "Normalized JSON containing metadata, design_arms, outcomes, statistical_analyses, adverse_events, and fetch errors",
+        "Optional raw ClinicalTrials.gov v2 study JSON files"
+      ],
+      "implementation_notes": "Uses /api/v2/studies/{nctId}. Preserves raw analysis and adverse-event records for downstream skill-specific processing.",
+      "path": "scripts/fetch_ctgov_trials.py",
+      "purpose": "Fetch one or more ClinicalTrials.gov trial records from NCT IDs or trial URLs using the v2 API and normalize trial metadata, design arms, outcomes, statistical analyses, and adverse events.",
+      "source_references": [
+        "ClinicalTrials.gov API v2 single-study endpoint",
+        "Publication method basis for ClinicalTrials.gov results parsing"
+      ]
+    }
+  ],
   "id": "pub-ad3bee2c41",
   "paper": {
     "authors": [
@@ -641,6 +661,26 @@
     ],
     "expected_outputs": [
       "Outcome category labels and supporting matched terms"
+    ],
+    "helper_scripts": [
+      {
+        "expected_inputs": [
+          "ClinicalTrials.gov NCT IDs",
+          "ClinicalTrials.gov trial URLs",
+          "Optional text file with one trial ID or URL per line"
+        ],
+        "expected_outputs": [
+          "Normalized JSON containing metadata, design_arms, outcomes, statistical_analyses, adverse_events, and fetch errors",
+          "Optional raw ClinicalTrials.gov v2 study JSON files"
+        ],
+        "implementation_notes": "Uses /api/v2/studies/{nctId}. Preserves raw analysis and adverse-event records for downstream skill-specific processing.",
+        "path": "scripts/fetch_ctgov_trials.py",
+        "purpose": "Fetch one or more ClinicalTrials.gov trial records from NCT IDs or trial URLs using the v2 API and normalize trial metadata, design arms, outcomes, statistical analyses, and adverse events.",
+        "source_references": [
+          "ClinicalTrials.gov API v2 single-study endpoint",
+          "Publication method basis for ClinicalTrials.gov results parsing"
+        ]
+      }
     ],
     "limitations": [
       "Rules are heuristic and may double-count or miss semantically equivalent outcomes."

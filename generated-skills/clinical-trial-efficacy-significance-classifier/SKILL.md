@@ -19,14 +19,15 @@ This skill is derived from:
 ## Workflow
 
 1. Inspect the input columns or JSON keys and identify trial id, outcome title, groups, p-value, confidence interval lower/upper bounds, statistical method, and parameter name.
-2. Preserve raw fields and create normalized fields for numeric p-value, lower limit, upper limit, parameter class, and parse warnings.
-3. Treat p-values as valid when they can be parsed from forms such as `0.03`, `<0.001`, `<= 0.05`, or equivalent numeric strings. Use the numeric threshold implied by the operator.
-4. If a valid p-value exists, label the result positive when p-value <= 0.05 and negative otherwise.
-5. If no valid p-value exists but a confidence interval exists, classify the statistical parameter as ratio-type for odds ratio, hazard ratio, risk ratio, relative risk, or similar measures; classify it as difference-type for mean difference, risk difference, absolute difference, or similar measures.
-6. For ratio-type intervals, label positive when the interval excludes 1 and negative when it contains 1.
-7. For difference-type intervals, label positive when the interval excludes 0 and negative when it contains 0.
-8. Mark rows unresolved when required numeric fields or parameter semantics are missing or contradictory.
-9. Return an audit summary with counts by label and a row-level explanation column.
+2. If the user provides ClinicalTrials.gov trial IDs or URLs instead of local result rows, run `scripts/fetch_ctgov_trials.py` to fetch single or bulk trial records from the ClinicalTrials.gov v2 API and normalize reported-results statistical analyses.
+3. Preserve raw fields and create normalized fields for numeric p-value, lower limit, upper limit, parameter class, and parse warnings.
+4. Treat p-values as valid when they can be parsed from forms such as `0.03`, `<0.001`, `<= 0.05`, or equivalent numeric strings. Use the numeric threshold implied by the operator.
+5. If a valid p-value exists, label the result positive when p-value <= 0.05 and negative otherwise.
+6. If no valid p-value exists but a confidence interval exists, classify the statistical parameter as ratio-type for odds ratio, hazard ratio, risk ratio, relative risk, or similar measures; classify it as difference-type for mean difference, risk difference, absolute difference, or similar measures.
+7. For ratio-type intervals, label positive when the interval excludes 1 and negative when it contains 1.
+8. For difference-type intervals, label positive when the interval excludes 0 and negative when it contains 0.
+9. Mark rows unresolved when required numeric fields or parameter semantics are missing or contradictory.
+10. Return an audit summary with counts by label and a row-level explanation column.
 
 ## Method Basis
 
@@ -35,11 +36,23 @@ The Methods section lays out a rule pipeline: prefer valid p-values, then confid
 ## Expected Inputs
 
 - Parsed statistical analysis rows with p-values, confidence intervals, and parameter names
+- ClinicalTrials.gov trial IDs or URLs when source records should be fetched directly
 - JSON arrays or JSONL records containing equivalent statistical-analysis fields
 
 ## Expected Outputs
 
 - Normalized significance labels and audit flags
+
+## Helper Scripts
+
+Use `scripts/fetch_ctgov_trials.py` when the user provides trial IDs or URLs:
+
+```bash
+python scripts/fetch_ctgov_trials.py --trial NCT01050998 --out ctgov_trials.json
+python scripts/fetch_ctgov_trials.py --input trial_ids_or_urls.txt --out ctgov_trials.json --raw-dir raw-ctgov
+```
+
+The script uses the ClinicalTrials.gov v2 single-study endpoint and emits normalized `statistical_analyses` rows containing p-values, confidence intervals, statistical methods, parameter fields, group IDs, and raw analysis records.
 
 ## Source Links
 

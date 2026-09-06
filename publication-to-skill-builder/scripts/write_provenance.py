@@ -15,6 +15,8 @@ def build_decision(proposal_doc: dict, status: str, feedback: str = "") -> dict:
         "paper_type": proposal_doc.get("paper_type", "unknown"),
         "analysis_basis": proposal_doc.get("analysis_basis", "metadata only"),
         "candidate_skills": proposal_doc.get("candidate_skills", []),
+        "repository_review": proposal_doc.get("repository_review", {}),
+        "helper_scripts": proposal_doc.get("helper_scripts", []),
         "proposal": proposal_doc.get("proposal", {}),
         "duplicate_check": proposal_doc.get(
             "duplicate_check",

@@ -155,7 +155,8 @@ def build_ai_prompt_bundle(publication: dict[str, Any], paper_type: str, basis: 
         "user_task": (
             "Return ranked candidate_skills and select one proposal for user approval. "
             "Each candidate must include skill_name, purpose, evidence, reusable_value, "
-            "expected_inputs, expected_outputs, implementation_complexity, and limitations."
+            "expected_inputs, expected_outputs, implementation_complexity, helper_scripts when needed, "
+            "repository_reference when source code was inspected, and limitations."
         ),
         "paper": paper,
         "paper_type": paper_type,
@@ -163,6 +164,7 @@ def build_ai_prompt_bundle(publication: dict[str, Any], paper_type: str, basis: 
         "abstract": content.get("abstract", ""),
         "section_summaries": section_summaries,
         "availability": availability,
+        "repository_review": publication.get("repository_review", {}),
         "full_text_for_ai_review": full_text,
     }
 
@@ -206,6 +208,8 @@ def analyze(publication: dict[str, Any]) -> dict[str, Any]:
         "paper_type": paper_type,
         "analysis_basis": basis,
         "candidate_skills": [],
+        "repository_review": publication.get("repository_review", {}),
+        "helper_scripts": [],
         "proposal": {
             "skill_name": proposal_slug,
             "description": "Pending AI selection from the full-paper analysis bundle.",
@@ -213,6 +217,8 @@ def analyze(publication: dict[str, Any]) -> dict[str, Any]:
             "evidence": evidence_excerpt(content),
             "expected_inputs": [],
             "expected_outputs": [],
+            "helper_scripts": [],
+            "repository_reference": {},
             "limitations": limitations,
             "status": "requires_ai_candidate_selection",
         },

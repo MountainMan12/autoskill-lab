@@ -53,10 +53,11 @@ The Publication-to-Skill Builder will support the following workflow:
 14. Ask the user to approve or decline the proposed skill for each publication.
 15. Record the user's approval or decline decision.
 16. If approved, create the skill.
-17. If declined, ask the user what they would have preferred to use as a skill.
-18. Store the user's feedback with complete provenance and the original proposal.
-19. Only implement declined-feedback ideas later if the user explicitly asks for that feedback to be implemented.
-20. Push created skills to the user's personal GitHub skill repository when requested.
+17. Include helper scripts in the generated skill when the method requires repeatable parsing, data fetching, format conversion, computation, validation, or report generation.
+18. If declined, ask the user what they would have preferred to use as a skill.
+19. Store the user's feedback with complete provenance and the original proposal.
+20. Only implement declined-feedback ideas later if the user explicitly asks for that feedback to be implemented.
+21. Push created skills to the user's personal GitHub skill repository when requested.
 
 ## Inputs
 
@@ -98,6 +99,7 @@ The parser should extract:
 - Code availability statements.
 - GitHub or repository links mentioned in the paper.
 - Software packages, libraries, pipelines, and statistical methods mentioned in the methods.
+- Repository file trees and relevant source files when an accessible code repository is reported by the paper.
 
 If full text or methods cannot be extracted, the skill should clearly flag the limitation and avoid inventing methodological details.
 
@@ -127,7 +129,28 @@ For each proposed skill, the agent should explain:
 - What inputs it would require.
 - What outputs it would produce.
 - Whether code or data from the paper is available.
+- Whether source repository code was inspected and which files informed the implementation.
+- Which helper scripts should be created, if any, and what data source or computation each script handles.
 - Any limitations or assumptions.
+
+## Source Repository Review And Script Generation
+
+When a paper reports a GitHub repository, source archive, notebook collection, package, or other code availability link, the Publication-to-Skill Builder should inspect that repository when it is accessible and relevant to the proposed skill.
+
+The builder should use its own repository-inspection script for GitHub repositories before final proposal selection when network access is available, and should record any access failure rather than silently skipping the review.
+
+The repository review should identify:
+
+- Raw data formats accepted by the original method.
+- Fetching or download procedures for public datasets.
+- Parsing functions, schema definitions, and intermediate tables.
+- Core computation routines, statistical tests, model calls, graph construction steps, or validation logic.
+- Command-line interfaces, notebooks, tests, and output examples.
+- License or access limitations that affect whether code can be copied, adapted, or only cited as reference.
+
+The generated skill should include helper scripts under its own `scripts/` directory when deterministic code would materially improve reliability. Scripts are especially appropriate for raw data parsing, public API fetches, schema normalization, computation pipelines, validation checks, and reproducible report writing.
+
+Scripts should be grounded in the paper and, when available, the source repository. They should be adapted to the generated skill's reusable scope rather than blindly copying repository code. If source code is unavailable or inaccessible, the generated skill should still include scripts when the paper provides enough implementation detail, while recording the repository limitation in provenance.
 
 ## Existing Skill Check
 
@@ -182,8 +205,10 @@ The log should include:
 - Available data information.
 - Available code information.
 - GitHub or repository links from the paper.
+- Repository review status, inspected files, implementation findings, and access limitations.
 - Proposed skill name.
 - Proposed skill description.
+- Proposed helper scripts, their purpose, inputs, outputs, implementation notes, and source references.
 - Evidence supporting the proposal.
 - Existing-skill search results.
 - User approval decision.
@@ -242,7 +267,9 @@ The skill may eventually include scripts or modules for:
 - Methods-section extraction.
 - Data and code availability extraction.
 - Repository-link detection.
+- Repository tree inspection and relevant source-file summarization.
 - Candidate skill proposal generation.
+- Helper-script planning and generation for data fetching, parsing, computation, validation, and reporting.
 - Existing-skill search against `scientific-agent-skills`.
 - User approval capture.
 - Provenance logging.
