@@ -11,7 +11,7 @@ Use this skill when the user wants to extract reusable computational ideas from 
 
 ## Core Rules
 
-- Process at most 10 publications per run. If more are supplied, stop and ask the user to split the batch.
+- Accept as many publications as the user's current AI plan, context window, runtime, and file/network access can reasonably handle. If a batch is too large to process reliably in one run, split it into staged run chunks and explain the batching plan instead of rejecting it because of a fixed publication count.
 - Accept PubMed IDs, PMC IDs, DOIs, Europe PMC/PubMed/publisher URLs, open PDF URLs, local PDF paths, or a text file containing any of these.
 - Fetch metadata and openly available full text/PDFs only from lawful public sources.
 - Parse user-provided PDFs locally when supplied.

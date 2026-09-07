@@ -39,7 +39,7 @@ The Publication-to-Skill Builder will support the following workflow:
 
 1. Accept one or more scientific publications from the user.
 2. Support both individual and bulk publication inputs.
-3. Enforce a maximum of 10 publications per run.
+3. Accept as many publications as the user's current AI plan, context window, runtime, and file/network access can reasonably support.
 4. Fetch paper metadata from public sources such as Europe PMC, PubMed, PubMed Central, Crossref, or publisher landing pages where appropriate.
 5. Attempt to fetch full text or PDF versions of the papers when legally and openly available.
 6. Flag publications where the full text or PDF is unavailable.
@@ -71,9 +71,9 @@ The skill should accept:
 - Publisher links.
 - Direct open-access PDF URLs.
 - Locally supplied PDF files.
-- Bulk lists containing up to 10 publications.
+- Bulk lists containing any number of publications, bounded by the user's available AI plan and practical runtime/context constraints.
 
-The skill must reject or pause on inputs containing more than 10 publications and ask the user to split the request into batches.
+The skill must not reject inputs solely because they exceed a fixed publication count. If a batch is too large to process reliably in one pass, the skill should explain a staged batching plan and continue chunk by chunk.
 
 ## PDF And Full-Text Handling
 
@@ -241,8 +241,8 @@ The system should not assume it has permission to push to GitHub unless the user
 
 ## Constraints
 
-- Do not accept more than 10 publications in a single run.
-- Ask the user to remove publications or run the skill in batches if more than 10 are supplied.
+- Do not enforce a fixed publication-count cap.
+- Split oversized requests into staged chunks only when required by the user's available AI plan, context window, runtime, or file/network limits.
 - Do not create a skill until the user approves the proposed skill.
 - Ask for approval separately for each publication.
 - Record every approval and decline decision.

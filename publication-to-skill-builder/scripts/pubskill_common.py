@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 
 
-MAX_PUBLICATIONS = 10
 REFERENCE_HEADINGS = {
     "references",
     "bibliography",

@@ -49,7 +49,7 @@ Use $publication-to-skill-builder on the papers listed in publications.txt.
 Propose skills, but do not scaffold anything until I approve them.
 ```
 
-Keep batches to 10 papers or fewer.
+You can upload as many papers as your current AI plan and runtime can reasonably handle. For very large batches, Codex should split the work into staged chunks and keep going chunk by chunk.
 
 ### 3. Let Codex Read The Paper
 
@@ -217,7 +217,7 @@ It works best when you provide open papers, PDFs, or identifiers that resolve to
 
 ## Guardrails
 
-- Maximum 10 publications per run.
+- No fixed publication-count cap; large batches are limited by your available AI plan, context window, runtime, and file/network access.
 - Full-paper analysis is preferred over abstract-only analysis.
 - Reference lists are excluded from method discovery.
 - Review, workflow, benchmark, database, software, and tutorial papers can all produce useful skill ideas.

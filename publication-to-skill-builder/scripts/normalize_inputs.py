@@ -4,7 +4,7 @@ import argparse
 import re
 from pathlib import Path
 
-from pubskill_common import MAX_PUBLICATIONS, read_text_input, stable_id, write_json
+from pubskill_common import read_text_input, stable_id, write_json
 
 
 DOI_RE = re.compile(r"(10\.\d{4,9}/[-._;()/:A-Z0-9]+)", re.I)
@@ -49,12 +49,6 @@ def normalize(inputs: list[str]) -> dict:
     expanded: list[str] = []
     for item in inputs:
         expanded.extend(read_text_input(item))
-
-    if len(expanded) > MAX_PUBLICATIONS:
-        raise ValueError(
-            f"Received {len(expanded)} publications; maximum is {MAX_PUBLICATIONS}. "
-            "Split the request into batches."
-        )
 
     records = []
     seen = set()

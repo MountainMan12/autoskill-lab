@@ -11,7 +11,7 @@ Normalize user inputs into publication records before fetching content. Supporte
 - Local PDF paths.
 - Text files containing one publication input per line.
 
-Reject runs containing more than 10 publication records.
+Do not enforce a fixed publication-count cap. Accept large batches when the user's available AI plan, context window, runtime, and file/network access can support them. For oversized batches, split the work into staged run chunks and continue chunk by chunk, recording each chunk in provenance.
 
 ## Retrieval
 
