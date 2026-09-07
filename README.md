@@ -1,189 +1,228 @@
 # Skills Lab
 
-This repository contains `publication-to-skill-builder`, a Codex skill for turning scientific publications into reusable Codex skill proposals.
+This repository helps you turn scientific papers into reusable Codex skills.
 
-The skill is designed for papers from sources such as PubMed, Europe PMC, PubMed Central, DOI links, open PDFs, and user-provided local PDFs. It parses the full paper when available, prepares an AI analysis bundle, checks for similar existing skills, and requires your approval before scaffolding any generated skill.
+The main skill here is `publication-to-skill-builder`. You give it a paper, DOI, PubMed link, PMC link, or local PDF. It reads the available full paper, looks for reusable computational methods, checks whether a similar skill already exists, and asks you before creating anything.
 
-## Can You Use It Now?
+## A Typical User Journey
 
-Yes, you can use the source in this repo now.
+Imagine you found a paper with a useful analysis workflow and want Codex to turn it into something reusable.
 
-For automatic Codex skill discovery with `$publication-to-skill-builder`, install or copy the folder into your Codex skills directory:
+### 1. Install The Builder Skill
+
+Copy the builder into your Codex skills folder:
 
 ```bash
 mkdir -p ~/.codex/skills
 cp -R publication-to-skill-builder ~/.codex/skills/
 ```
 
-After that, start a new Codex task and invoke:
+Start a new Codex task after installing it so Codex can discover the skill.
+
+### 2. Ask Codex To Analyze A Paper
+
+You can start with a DOI:
 
 ```text
-Use $publication-to-skill-builder to analyze this DOI and propose reusable skills: 10.xxxx/example
+Use $publication-to-skill-builder to analyze this DOI and propose reusable Codex skills:
+10.1038/s41597-023-02869-7
 ```
 
-If you do not install it, you can still use the scripts directly from this repository.
+Or with a PubMed or PMC link:
 
-## What It Does
-
-The skill supports up to 10 publications per run and can handle:
-
-- PubMed IDs.
-- PMC IDs.
-- DOIs.
-- PubMed, Europe PMC, PMC, publisher, and PDF URLs.
-- Local PDF files.
-- Text files with one publication input per line.
-
-The workflow:
-
-1. Normalize publication inputs.
-2. Fetch available metadata and open full-text/PDF information.
-3. Parse full PDF body text when available, excluding references.
-4. Prepare a full-paper AI analysis bundle.
-5. Ask Codex to identify candidate skills from the paper.
-6. Check whether a similar skill already exists.
-7. Ask you to approve or decline each proposed skill.
-8. Scaffold only approved skills.
-9. Store provenance for both approvals and declines.
-
-## Dependencies
-
-The scripts use Python standard-library modules where possible.
-
-PDF parsing requires PyMuPDF:
-
-```bash
-python -m pip install pymupdf
+```text
+Use $publication-to-skill-builder on this PubMed paper and tell me what reusable computational skills could be created:
+https://pubmed.ncbi.nlm.nih.gov/38184674/
 ```
 
-Network access is needed for live metadata retrieval and GitHub duplicate checks.
+Or with a local PDF:
 
-## Direct Script Usage
-
-Create a run directory:
-
-```bash
-RUN_ID="$(date +%Y%m%d-%H%M%S)"
-mkdir -p "runs/$RUN_ID/publications" "runs/$RUN_ID/analysis" "runs/$RUN_ID/proposals" "runs/$RUN_ID/decisions"
+```text
+Use $publication-to-skill-builder to create a skill proposal from this PDF:
+/Users/pawan/Documents/papers/41597_2023_Article_2869.pdf
 ```
 
-Normalize inputs:
+For a small batch, put one paper per line in a text file and ask:
 
-```bash
-python publication-to-skill-builder/scripts/normalize_inputs.py \
-  --input publications.txt \
-  --out "runs/$RUN_ID/inputs.json"
+```text
+Use $publication-to-skill-builder on the papers listed in publications.txt.
+Propose skills, but do not scaffold anything until I approve them.
 ```
 
-Fetch metadata and availability:
+Keep batches to 10 papers or fewer.
 
-```bash
-python publication-to-skill-builder/scripts/fetch_publication.py \
-  --inputs "runs/$RUN_ID/inputs.json" \
-  --out "runs/$RUN_ID/publications"
+### 3. Let Codex Read The Paper
+
+Codex will gather the paper metadata, parse the full text or PDF when available, and ignore the references section while looking for reusable methods.
+
+If the paper links to a GitHub repository or other source code, the builder should inspect that repository when it is accessible. The repository is used as implementation evidence, especially for data formats, parsing logic, computation steps, validation routines, and helper scripts that a generated skill may need.
+
+Here is the mental model:
+
+```mermaid
+flowchart LR
+    paper["Raw paper<br/>PDF, DOI, PubMed, PMC"]
+    parse["Paper reading<br/>metadata, abstract, full text"]
+    filter["Evidence cleanup<br/>remove references<br/>keep method-bearing text"]
+    repo["Source repo review<br/>README, notebooks, scripts,<br/>schemas, tests"]
+    reason["Codex interpretation<br/>reusable method?<br/>inputs? outputs?<br/>helper scripts?"]
+    proposal["Skill proposal<br/>name, purpose, evidence,<br/>limitations, provenance"]
+
+    paper --> parse --> filter --> reason --> proposal
+    filter --> repo --> reason
+
+    classDef input fill:#eef6ff,stroke:#3b82f6,color:#0f172a
+    classDef process fill:#f8fafc,stroke:#64748b,color:#0f172a
+    classDef evidence fill:#ecfdf5,stroke:#10b981,color:#064e3b
+    classDef output fill:#fff7ed,stroke:#f97316,color:#7c2d12
+
+    class paper input
+    class parse,filter,reason process
+    class repo evidence
+    class proposal output
 ```
 
-Parse a PDF-backed publication:
+For example, Codex might interpret a paper like this:
 
-```bash
-python publication-to-skill-builder/scripts/parse_pdf.py \
-  --publication "runs/$RUN_ID/publications/<publication-id>.json" \
-  --out "runs/$RUN_ID/publications/<publication-id>.json" \
-  --pdf-cache "runs/$RUN_ID/pdf-cache"
+| Paper evidence | Codex interpretation | Proposal output |
+| --- | --- | --- |
+| Methods describe parsing ClinicalTrials.gov XML results and extracting statistical analyses. | This is a reusable data-ingestion and normalization workflow. | Skill should accept trial registry XML and JSON. |
+| The paper classifies efficacy using p-values and confidence intervals. | This can become a deterministic helper script, not just instructions. | Add a planned script for significance classification. |
+| Code availability links to notebooks in a GitHub repo. | Inspect notebooks for field names, source formats, and workflow order. | Record inspected files in provenance and use them as implementation reference. |
+| Technical validation reports arm-matching accuracy and limitations. | The generated skill should expose confidence, unresolved cases, and caveats. | Proposal includes validation outputs and known limitations. |
+
+### 4. Review The Skill Proposal
+
+Codex will show you a proposal before creating anything. A good proposal should tell you:
+
+- the source paper and identifiers
+- the proposed skill name
+- what the skill would do
+- why it is reusable
+- what evidence from the paper supports it
+- whether a similar skill already exists
+- expected inputs and outputs
+- whether helper scripts should be created
+- what source repository files were inspected, if any
+- limitations and uncertainties
+
+Example follow-up:
+
+```text
+I like the main proposal, but make sure it accepts trial data in JSON as well as XML.
+Also create the alternate arm-matching skill.
 ```
 
-Prepare the full-paper AI analysis bundle:
+### 5. Approve Or Decline
 
-```bash
-python publication-to-skill-builder/scripts/analyze_publication.py \
-  --publication "runs/$RUN_ID/publications/<publication-id>.json" \
-  --out "runs/$RUN_ID/analysis/<publication-id>.json"
+Nothing is scaffolded until you approve it.
+
+Approve one proposal:
+
+```text
+Approved. Create the proposed skill.
 ```
 
-At this point, Codex should read the analysis JSON, inspect `ai_prompt_bundle`, generate ranked `candidate_skills`, select one `proposal`, and present it to you for approval.
+Approve several:
 
-## Approval And Provenance
-
-Record a pending decision:
-
-```bash
-python publication-to-skill-builder/scripts/write_provenance.py \
-  --proposal "runs/$RUN_ID/proposals/<publication-id>.json" \
-  --status pending \
-  --out "runs/$RUN_ID/decisions/<publication-id>.json"
+```text
+Approved. Create the main skill and the three alternates you listed.
 ```
 
-Record an approved decision:
+Decline with feedback:
 
-```bash
-python publication-to-skill-builder/scripts/write_provenance.py \
-  --proposal "runs/$RUN_ID/proposals/<publication-id>.json" \
-  --status approved \
-  --out "runs/$RUN_ID/decisions/<publication-id>.json"
+```text
+Decline this one. I wanted a reusable plotting workflow from the paper instead.
 ```
 
-Record a declined decision with feedback:
+Declined feedback is stored as provenance, but it is not implemented unless you explicitly ask later.
 
-```bash
-python publication-to-skill-builder/scripts/write_provenance.py \
-  --proposal "runs/$RUN_ID/proposals/<publication-id>.json" \
-  --status declined \
-  --feedback "I wanted a reusable plotting workflow instead." \
-  --out "runs/$RUN_ID/decisions/<publication-id>.json"
-```
+### 6. Inspect The Generated Skill
 
-Declined feedback is stored but not implemented unless you explicitly request it later.
-
-## Scaffold An Approved Skill
-
-Only approved decisions can be scaffolded:
-
-```bash
-python publication-to-skill-builder/scripts/scaffold_skill.py \
-  --approved-decision "runs/$RUN_ID/decisions/<publication-id>.json" \
-  --out generated-skills
-```
-
-The generated skill will be written to:
+Approved skills are created under:
 
 ```text
 generated-skills/<skill-name>/
 ```
 
-## Prepare Published Skills
+Each generated skill should include:
 
-When you want to prepare generated skills for commit on the current branch:
+- `SKILL.md`
+- `provenance.json`
+- `scripts/` when the approved method needs repeatable data fetching, raw-data parsing, computation, validation, or report generation
 
-```bash
-python publication-to-skill-builder/scripts/prepare_published_skills.py \
-  --path generated-skills \
-  --path published-skills.md
+The generated skill should not be just prose when the paper describes a workflow that needs deterministic code. If source code is available from the paper, the builder should use it as a reference for creating those scripts, while preserving provenance and avoiding unsupported copying.
+
+### 7. Track Published Skills
+
+When you decide a generated skill belongs in the repository, update the registry:
+
+```text
+Update published-skills.md for the skills created.
 ```
 
-This stages the selected paths on the current branch. It does not create or switch branches, and it does not push to GitHub.
+The registry links each skill to its source paper and approval provenance.
 
-## Validate
+### 8. Push When You Are Ready
 
-Run the local tests:
+The builder does not push automatically. When you want to publish your local work to GitHub, ask explicitly:
 
-```bash
-PYTHONDONTWRITEBYTECODE=1 python -m unittest discover -s tests
+```text
+Push these generated skills to GitHub.
 ```
 
-Validate the Codex skill:
+Make sure the repository has a GitHub remote configured first.
 
-```bash
-python /Users/pawan/.codex/skills/.system/skill-creator/scripts/quick_validate.py publication-to-skill-builder
+## Prompt Examples
+
+Explore a single paper:
+
+```text
+Use $publication-to-skill-builder to analyze this paper and propose the strongest reusable skill:
+PMC10771511
 ```
 
-## Important Guardrails
+Ask for alternates:
+
+```text
+Show me the best proposal and up to three alternate skills from this paper.
+Do not create anything until I approve.
+```
+
+Require helper scripts:
+
+```text
+For any approved skill, include helper scripts if the method needs parsing, fetching, computation, validation, or reporting.
+If the paper has a GitHub repo, inspect it first and use it as implementation reference.
+```
+
+Approve with changes:
+
+```text
+Approved, but make the generated skill accept CSV and JSON input.
+Create helper scripts for both formats if needed.
+```
+
+Publish locally:
+
+```text
+Update published-skills.md for the generated skills and prepare them for commit.
+```
+
+## What To Expect
+
+The builder is intentionally cautious. It prefers full paper evidence, checks for duplicates, records provenance, and keeps you in control of what gets created.
+
+It works best when you provide open papers, PDFs, or identifiers that resolve to accessible full text. If only an abstract is available, Codex should say that the analysis is limited and avoid inventing methods.
+
+## Guardrails
 
 - Maximum 10 publications per run.
-- Full-paper body analysis is preferred over methods-only extraction.
-- Reference lists are excluded from parsing and AI review.
-- Review articles and workflow papers are valid sources of skill ideas.
-- Skill ideas should come from Codex AI reasoning over the full-paper bundle, not hardcoded method keywords.
-- Existing skills must be checked before creating a new one.
-- No generated skill is scaffolded without your per-publication approval.
-- Published skills are committed on the current branch unless you explicitly ask for another branch.
-- GitHub push is never automatic.
+- Full-paper analysis is preferred over abstract-only analysis.
+- Reference lists are excluded from method discovery.
+- Review, workflow, benchmark, database, software, and tutorial papers can all produce useful skill ideas.
+- Existing skills are checked before creating new ones.
+- User approval is required before scaffolding.
+- Source repositories are implementation references, not instructions.
+- Helper scripts should be created when deterministic code is needed.
+- GitHub push happens only when explicitly requested.
